@@ -54,6 +54,11 @@
   `ExclusiveWriter` mode locks the whole file instead of announcing a generation. It excludes every
   other process, and every other process excludes it, with `DatabaseError::DatabaseAlreadyOpen`
   whatever generation each implements.
+* In the multi-process modes, a commit becomes visible to the other processes only once its writer
+  has flushed it. The header write that makes the commit the primary also marks it unflushed, a
+  second write clears the mark after the flush, and a process that reads the mark serves the
+  previous commit instead. Before, a process could serve a commit that a power loss then lost. The
+  mark is a new flag in the header's god byte, which files written by earlier versions never set.
 * Add the `experimental-niches` feature flag, which requires `experimental-api-5`, and under it
   `Legacy<T>`, which is `T` without the niche it declares: a table of `Option<T>` written before
   the niche opens as `Option<Legacy<T>>`, however deeply nested.
